@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const isAdmin = request.nextUrl.pathname.startsWith("/api/admin");
   const isDocs = request.nextUrl.pathname === "/api/docs";
 
-  const cors = corsHeaders(origin);
+  const cors = corsHeaders(origin, isAdmin);
   const allHeaders = { ...SECURITY_HEADERS, ...cors };
 
   // Docs page needs relaxed CSP to load Scalar scripts/styles

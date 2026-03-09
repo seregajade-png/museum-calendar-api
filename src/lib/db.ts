@@ -1,4 +1,4 @@
-import { Pool, QueryResult } from "pg";
+import { Pool } from "pg";
 
 let _pool: Pool | null = null;
 

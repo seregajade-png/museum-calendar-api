@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     if (!isValidUUID(params.id)) {
-      return json({ error: "Invalid ID format" }, 400);
+      return json({ error: "Invalid ID format" }, 400, null, true);
     }
 
     const body = await req.json();
@@ -19,13 +19,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.slug !== undefined) {
       const slug = sanitize(body.slug);
       if (!/^[a-z0-9\-]+$/.test(slug)) {
-        return json({ error: "slug must contain only lowercase letters, numbers, and hyphens" }, 400);
+        return json({ error: "slug must contain only lowercase letters, numbers, and hyphens" }, 400, null, true);
       }
       fields.push(`slug = $${idx++}`); values.push(slug);
     }
     if (body.day_type !== undefined) {
       if (!["weekday", "weekend"].includes(body.day_type)) {
-        return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400);
+        return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400, null, true);
       }
       fields.push(`day_type = $${idx++}`); values.push(body.day_type);
     }
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.sort_order !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(Math.max(0, Math.floor(Number(body.sort_order) || 0))); }
 
     if (fields.length === 0) {
-      return json({ error: "No fields to update" }, 400);
+      return json({ error: "No fields to update" }, 400, null, true);
     }
 
     values.push(params.id);
@@ -48,19 +48,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       values
     );
 
-    if (!data) return json({ error: "Tariff not found" }, 404);
+    if (!data) return json({ error: "Tariff not found" }, 404, null, true);
 
-    return json(data, 200, req.headers.get("origin"));
+    return json(data, 200, req.headers.get("origin"), true);
   } catch (err) {
     console.error("Update tariff error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     if (!isValidUUID(params.id)) {
-      return json({ error: "Invalid ID format" }, 400);
+      return json({ error: "Invalid ID format" }, 400, null, true);
     }
 
     await query("DELETE FROM tariffs WHERE id = $1", [params.id]);
@@ -68,6 +68,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return new NextResponse(null, { status: 204 });
   } catch (err) {
     console.error("Delete tariff error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }

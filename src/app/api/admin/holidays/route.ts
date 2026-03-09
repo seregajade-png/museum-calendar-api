@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const year = req.nextUrl.searchParams.get("year");
 
     if (year && !/^\d{4}$/.test(year)) {
-      return json({ error: "Invalid year format. Expected YYYY" }, 400);
+      return json({ error: "Invalid year format. Expected YYYY" }, 400, null, true);
     }
 
     let data;
@@ -23,10 +23,10 @@ export async function GET(req: NextRequest) {
       data = await query("SELECT * FROM holidays ORDER BY date");
     }
 
-    return json(data, 200, req.headers.get("origin"));
+    return json(data, 200, req.headers.get("origin"), true);
   } catch (err) {
     console.error("List holidays error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }
 
@@ -37,12 +37,12 @@ export async function POST(req: NextRequest) {
     const label = body.label !== undefined ? sanitize(body.label) : null;
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return json({ error: "Invalid date format. Expected YYYY-MM-DD" }, 400);
+      return json({ error: "Invalid date format. Expected YYYY-MM-DD" }, 400, null, true);
     }
 
     const parsed = new Date(date + "T00:00:00Z");
     if (isNaN(parsed.getTime())) {
-      return json({ error: "Invalid date value" }, 400);
+      return json({ error: "Invalid date value" }, 400, null, true);
     }
 
     const data = await queryOne(
@@ -50,12 +50,12 @@ export async function POST(req: NextRequest) {
       [date, label || null]
     );
 
-    return json(data, 201, req.headers.get("origin"));
+    return json(data, 201, req.headers.get("origin"), true);
   } catch (err: unknown) {
     if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "23505") {
-      return json({ error: "Holiday already exists for this date" }, 409);
+      return json({ error: "Holiday already exists for this date" }, 409, null, true);
     }
     console.error("Create holiday error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }

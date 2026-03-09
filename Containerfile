@@ -5,9 +5,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
-RUN npm prune --omit=dev
 
-# ---- Stage 3: Production runner ----
+# ---- Stage 2: Production runner ----
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -18,8 +17,12 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/migrations/migration.sql ./migration.sql
+COPY --chown=nextjs:nodejs entrypoint.sh ./entrypoint.sh
+COPY --chown=nextjs:nodejs migrate.js ./migrate.js
+RUN chmod +x ./entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["./entrypoint.sh"]

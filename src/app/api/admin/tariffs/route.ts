@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const dayType = req.nextUrl.searchParams.get("day_type");
 
     if (dayType && !["weekday", "weekend"].includes(dayType)) {
-      return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400);
+      return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400, null, true);
     }
 
     let data;
@@ -20,10 +20,10 @@ export async function GET(req: NextRequest) {
       data = await query("SELECT * FROM tariffs ORDER BY sort_order");
     }
 
-    return json(data, 200, req.headers.get("origin"));
+    return json(data, 200, req.headers.get("origin"), true);
   } catch (err) {
     console.error("List tariffs error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }
 
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
     const name = sanitize(body.name);
 
     if (!slug || !day_type || !name) {
-      return json({ error: "Required fields: slug, day_type, name" }, 400);
+      return json({ error: "Required fields: slug, day_type, name" }, 400, null, true);
     }
     if (!["weekday", "weekend"].includes(day_type)) {
-      return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400);
+      return json({ error: "day_type must be 'weekday' or 'weekend'" }, 400, null, true);
     }
     if (!/^[a-z0-9\-]+$/.test(slug)) {
-      return json({ error: "slug must contain only lowercase letters, numbers, and hyphens" }, 400);
+      return json({ error: "slug must contain only lowercase letters, numbers, and hyphens" }, 400, null, true);
     }
 
     const price = typeof body.price === "number" ? Math.max(0, Math.floor(body.price)) : 0;
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    return json(data, 201, req.headers.get("origin"));
+    return json(data, 201, req.headers.get("origin"), true);
   } catch (err: unknown) {
     if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "23505") {
-      return json({ error: "Tariff with this slug already exists" }, 409);
+      return json({ error: "Tariff with this slug already exists" }, 409, null, true);
     }
     console.error("Create tariff error:", err);
-    return json({ error: "Internal server error" }, 500);
+    return json({ error: "Internal server error" }, 500, null, true);
   }
 }

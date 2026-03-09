@@ -3,7 +3,6 @@ services:
     image: postgres:16-alpine
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./supabase/migration.sql:/docker-entrypoint-initdb.d/01-schema.sql
     environment:
       POSTGRES_DB: museum_calendar
       POSTGRES_USER: museum
