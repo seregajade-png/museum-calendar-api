@@ -1,15 +1,11 @@
-# ---- Stage 1: Install dependencies ----
-FROM node:24-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# ---- Stage 2: Build ----
+# ---- Stage 1: Build ----
 FROM node:24-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
+RUN npm prune --omit=dev
 
 # ---- Stage 3: Production runner ----
 FROM node:24-alpine AS runner
